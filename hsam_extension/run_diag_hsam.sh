@@ -5,7 +5,7 @@
 #   Ψ 門檻 = 加權清單的最小值（failure_diagnostics 用「>」，所以減 1e-7）；Ψ6 為 > 0
 #   形狀特徵（只由遮罩算）：psi1_convex、psi6_cc
 #   疊合圖：U-KAN 與 H-SAM 在 16 張低分影像上的預測（overlay_hsam_ukan.py）
-# 結果複製到 psi-weighted-hsam：results/diagnostics/<模型>_last/、results/examples/、results/analysis/hard_cases_BUSI.csv
+# 結果複製到 psi-weighted-hsam：results/diagnostics/base_last_psi8_rotation/、<模型>_last/、results/examples/、results/analysis/hard_cases_BUSI.csv
 # 用法（H-SAM 資料夾、hsam 環境）：bash run_diag_hsam.sh > run_diag_hsam.log 2>&1
 cd "$(dirname "$0")"
 BASE=${BASE:-$(cd .. && pwd)}
@@ -52,8 +52,9 @@ python overlay_hsam_ukan.py --repo "$REPO" --busi "$BUSI" --ukan_out "$UKAN_OUT"
 step "4. 複製到 $REPO"
 mkdir -p $REPO/results/diagnostics $REPO/hsam_extension
 for m in base ctrl psi1w3n psi6w3n psi8w3n; do
-  mkdir -p $REPO/results/diagnostics/${m}_last
-  cp $OUT/${m}_last/per_case.csv $OUT/${m}_last/summary.json $REPO/results/diagnostics/${m}_last/
+  d=${m}_last; [ $m = base ] && d=base_last_psi8_rotation      # baseline 的梯度對齊用 Ψ8 清單
+  mkdir -p $REPO/results/diagnostics/$d
+  cp $OUT/${m}_last/per_case.csv $OUT/${m}_last/summary.json $REPO/results/diagnostics/$d/
 done
 python $FD --selftest > $REPO/results/diagnostics/selftest.txt
 cp diag_npz_hsam.py overlay_hsam_ukan.py run_diag_hsam.sh $REPO/hsam_extension/

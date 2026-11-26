@@ -13,7 +13,7 @@ baseline 的訓練集預測算出 Ψ，取 Ψ 最明顯的影像 loss × 3（÷ 
 4. Ψ8 專家在低分 12 張上 +0.058（8 張升、1 張降，p = 0.012），但被誤挑的 40 張正常影像略降，整體抵銷。
 5. H-SAM 的 12 張低分影像中有 11 張也是 U-KAN 的低分影像；`benign (247)`、`benign (116)` 在所有模型都是 0。困難的是影像本身，不是特定模型。
 6. **8 個模型（U-KAN 3 個、H-SAM 5 個）全部 Dice < 0.1 的有 3 張：`benign (247)`、`benign (116)`、`malignant (106)`**（`malignant (105)` 8 個中 7 個 < 0.1）。全部 < 0.5 的有 10 張（第 6 節）。
-7. 教授的 failure_diagnostics.py：H-SAM baseline 的 12 張失敗 = 6 張 delineation + 6 張 missed，沒有 wrong-choice；梯度對齊與 U-KAN **相反**：Ψ8 加權清單與失敗影像同方向（rho_G +0.41，隨機對照 −0.24，12 張中 11 張 A > 0），與 Ψ8 專家在低分影像上 +0.058 一致（第 7 節）。
+7. 教授的 failure_diagnostics.py：H-SAM baseline 的 12 張失敗 = 6 張 delineation + 6 張 missed，沒有 wrong-choice；梯度對齊與 U-KAN **相反**：Ψ8、Ψ6 的加權清單與失敗影像同方向（rho_G +0.41、+0.55，隨機對照 −0.24、−0.33），Ψ1 的清單無關（−0.05）；與 Ψ8 專家在低分影像上 +0.058 一致（第 7 節）。
 
 ## 模型與公平性
 
@@ -177,6 +177,23 @@ H-SAM 的 12 張低分與 U-KAN 的 15 張低分，每個模型的 Dice（[low_d
 輸入由 [diag_npz_hsam.py](hsam_extension/diag_npz_hsam.py) 產生：測試集 130 張的機率圖（H-SAM 推論，縮到 256×256）、Ψ1 / Ψ6 / Ψ8（baseline 的預測）、梯度；執行：[run_diag_hsam.sh](hsam_extension/run_diag_hsam.sh)。
 Ψ 門檻 = 加權清單的最小值（程式用「>」，所以減 1e-7）；Ψ6 為 > 0。
 
+**執行方法**（工作站的 `H-SAM` 資料夾、hsam 環境；約 10 分鐘，不需要訓練）
+
+| 步驟 | 指令 | 做什麼 | 結果 |
+|---|---|---|---|
+| 1 | `bash run_diag_hsam.sh > run_diag_hsam.log 2>&1` | 自我測試 → base 三部分（梯度用 Ψ8 清單）→ ctrl 與三個專家的失敗類型 → 疊合圖 → 複製到本倉庫 | `results/diagnostics/base_last_psi8_rotation/`、`{ctrl,psi1w3n,psi6w3n,psi8w3n}_last/`、`selftest.txt`、`results/examples/`、`results/analysis/hard_cases_BUSI.csv` |
+| 2 | `bash run_align_hsam.sh > run_align_hsam.log 2>&1` | base 的梯度對齊改用 Ψ1、Ψ6 清單 | `results/diagnostics/base_last_psi1_convex/`、`base_last_psi6_cc/` |
+
+兩個腳本都會呼叫：[diag_npz_hsam.py](hsam_extension/diag_npz_hsam.py)（載入 H-SAM，產生教授程式需要的 .npz：機率圖、標註、預測、Ψ、梯度）→ 教授的 `failure_diagnostics.py` → `name_cases.py`（把編號換成影像名稱）。
+後兩支在 [psi-discussion/busi/code](https://github.com/OwenWu930302/psi-discussion/tree/main/busi/code)，腳本預設從 `~/桌面/論文/psi-discussion/busi/code` 讀取；那 9 張的清單從 `~/桌面/論文/psi-weighted-ukan/weight_lists/` 讀取。
+| 資料夾 | 模型 | 比較什麼 |
+|---|---|---|
+| `base_last_psi8_rotation/`、`base_last_psi1_convex/`、`base_last_psi6_cc/` | baseline | 三部分都有。失敗類型與 Ψ 偵測三者相同（同一個模型）；梯度對齊分別拿 Ψ8、Ψ1、Ψ6 的加權清單和失敗影像比，回答「加權這份清單能不能幫到 baseline 的失敗」 |
+| `ctrl_last/` | 對照組 | 只有失敗類型：專家的比較基準 |
+| `psi1w3n_last/`、`psi6w3n_last/`、`psi8w3n_last/` | 三個專家 | 只有失敗類型：和 `ctrl_last` 比，看加權後失敗的種類有沒有改變 |
+
+每個結果資料夾：`summary.json`（整體：失敗類型、recall@k、Ψ 的 AUROC / 門檻、梯度對齊、偵測上限）、`per_case.csv`（每張測試影像一列）。
+
 **7.1 候選區域與失敗類型**（機率 > 0.2 的區塊依最高機率排名，蓋到 ≥ 30% 標註才算命中）
 
 | 模型 | 失敗（Dice < 0.5） | delineation | wrong-choice | missed | recall@1 | recall@5 |
@@ -202,28 +219,31 @@ H-SAM 的 12 張低分與 U-KAN 的 15 張低分，每個模型的 Dice（[low_d
 
 **7.3 梯度對齊**（baseline；參數 = 兩個 decoder 中產生遮罩的 hypernetwork MLP 最後一層，24,672 維；loss = 最後一個 epoch 的官方 loss）
 
-| 測試影像 | 訓練影像 | rho_G | A > 0 |
-|---|---|---|---|
-| 12 張失敗 | Ψ8 加權清單 155 張（× 3） | **+0.41** | 11 / 12 |
-| 　其中 6 張 missed | 同上 | +0.54 | 6 / 6 |
-| 　其中 6 張 delineation | 同上 | +0.29 | 5 / 6 |
-| 12 張失敗 | 隨機 155 張（對照） | −0.24 | |
-| 118 張非失敗 | Ψ8 加權清單 | +0.10 | 77 / 118 |
+每個 Ψ 的加權清單各算一次（清單影像權重 × 3；對照 = 從其餘訓練影像隨機抽同樣張數，權重 1）。
+結果：[base_last_psi8_rotation/](results/diagnostics/base_last_psi8_rotation/)、[base_last_psi1_convex/](results/diagnostics/base_last_psi1_convex/)、[base_last_psi6_cc/](results/diagnostics/base_last_psi6_cc/)；程式：[run_align_hsam.sh](hsam_extension/run_align_hsam.sh)。
 
-- **與 U-KAN 相反**（U-KAN：失敗 −0.40、對照 −0.18）：在 H-SAM 上，Ψ8 清單的梯度與失敗影像同方向，而且明顯高於隨機對照，代表 Ψ8 挑到的訓練影像與測試失敗「相關」。這和 Ψ8 專家在低分 12 張上 +0.058（第 4 節）一致。
-- 但同方向只是一階近似：`benign (247)`、`benign (116)`、`malignant (105)` 在 Ψ8 專家仍是 0；加權的改善也被 40 張誤挑的正常影像抵銷。
+| 加權清單 | 12 張失敗 rho_G | A > 0 | 6 張 missed | 6 張 delineation | 隨機對照 | 118 張非失敗 | 測試集低分 12 張 ctrl → 專家 |
+|---|---|---|---|---|---|---|---|
+| Ψ8（155 張） | **+0.41** | 11 / 12 | +0.54（6 / 6） | +0.29（5 / 6） | −0.24 | +0.10 | **+0.058** |
+| Ψ6（64 張） | **+0.55** | 10 / 12 | +0.77（6 / 6） | +0.33（4 / 6） | −0.33 | +0.03 | +0.005 |
+| Ψ1（155 張） | −0.05 | 4 / 12 | −0.20（1 / 6） | +0.09（3 / 6） | +0.06 | +0.09 | +0.020 |
+
+- **Ψ8、Ψ6 的清單與失敗影像同方向**，而且明顯高於隨機對照：這兩個 Ψ 挑到的訓練影像與測試失敗「相關」，missed 6 張全部同方向。
+- **Ψ1 的清單與失敗影像無關**（−0.05，與對照相近）：Ψ1（凸包比）挑到的是形狀不規則的影像，和失敗影像需要的方向不同。
+- **與 U-KAN 相反**（U-KAN 的 Ψ8 清單：失敗 −0.40、對照 −0.18；[psi-discussion 第 8.3 節](https://github.com/OwenWu930302/psi-discussion/tree/main/busi)）。
+- **同方向不代表救得回來**：Ψ6 方向最一致，但清單只有 64 張，低分 12 張只 +0.005；Ψ8 有改善（+0.058），但 `benign (247)`、`benign (116)`、`malignant (105)` 仍是 0，且被 40 張誤挑的正常影像抵銷。這是一階近似，只說明「加一點權重的那一步」往哪裡走。
 - 參數與 loss 都和 U-KAN 不同，兩個模型只比較正負，不比較大小。
 
 ## 資料夾
 
 | 路徑 | 內容 |
 |---|---|
-| [hsam_extension/](hsam_extension/) | 資料轉換、兩個 patch、預測與 Ψ、篩選、記憶體測試、訓練腳本、整理（collect_hsam.py）、分析（analyze_hsam.py）、失敗診斷（diag_npz_hsam.py、run_diag_hsam.sh）、疊合圖（overlay_hsam_ukan.py）、U-KAN 對照（compare_ukan_hsam.py） |
+| [hsam_extension/](hsam_extension/) | 資料轉換、兩個 patch、預測與 Ψ、篩選、記憶體測試、訓練腳本、整理（collect_hsam.py）、分析（analyze_hsam.py）、失敗診斷（diag_npz_hsam.py、run_diag_hsam.sh）、疊合圖（overlay_hsam_ukan.py）、U-KAN 對照（compare_ukan_hsam.py）、Ψ1 / Ψ6 清單的梯度對齊（run_align_hsam.sh） |
 | [results/percase/](results/percase/) | 每個模型逐張結果（訓練集 + 測試集）：`dice`（原始解析度）、`dice256`、Ψ1–Ψ10（base 才有 Ψ） |
 | [results/training_logs/](results/training_logs/) | 官方 trainer 的逐迭代紀錄（`_log.txt`）與設定（`_config.txt`） |
 | [results/analysis/](results/analysis/) | 上面各節的表格與圖；檔名、欄位與 psi-weighted-ukan 的 `results/analysis/` 相同（`checkpoint` 皆為 last）；`hard_cases_BUSI.csv` 為第 6 節；`compare_UKAN_HSAM_BUSI.*` 為第 1 節的 U-KAN 對照 |
 | [results/examples/](results/examples/) | 第 6 節的疊合圖：`low_dice_overview.jpg`（一覽）、`low_dice/`（每張影像 8 個模型） |
-| [results/diagnostics/](results/diagnostics/) | 第 7 節：每個模型的 `per_case.csv`、`summary.json`（教授程式的輸出），`selftest.txt` |
+| [results/diagnostics/](results/diagnostics/) | 第 7 節：每個模型的 `per_case.csv`、`summary.json`（教授程式的輸出；`base_last_psi8_rotation`、`base_last_psi1_convex`、`base_last_psi6_cc` = baseline，梯度對齊分別用 Ψ8、Ψ1、Ψ6 清單；`ctrl_last` 與 `psi*w3n_last` = 對照組與專家的失敗類型），`selftest.txt` |
 | [weight_lists/](weight_lists/) | Ψ 篩選結果（`proxy_selection_busi.csv`）與三份加權清單 |
 
 ## 重現

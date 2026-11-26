@@ -1,7 +1,7 @@
 #!/bin/bash
 # 梯度對齊（failure_diagnostics.py 第 2 部分）補做 Ψ1、Ψ6 的加權清單（run_diag_hsam.sh 只用了 Ψ8 的清單）
 #   每個 Ψ：用該 Ψ 的加權清單當 grads_flag（權重 3），其餘訓練影像當對照，其他設定與 run_diag_hsam.sh 相同
-#   結果：results/diagnostics/base_last_psi1_convex/、base_last_psi6_cc/（base_last/ 為 Ψ8 清單）
+#   結果：results/diagnostics/base_last_psi1_convex/、base_last_psi6_cc/（Ψ8 清單為 base_last_psi8_rotation/，由 run_diag_hsam.sh 產生）
 # 用法（H-SAM 資料夾、hsam 環境）：bash run_align_hsam.sh > run_align_hsam.log 2>&1
 cd "$(dirname "$0")"
 BASE=${BASE:-$(cd .. && pwd)}
@@ -29,5 +29,5 @@ cp run_align_hsam.sh $REPO/hsam_extension/
 (cd $REPO && git add -A && git status --short)
 step "全部完成"
 for d in base_last base_last_psi1_convex base_last_psi6_cc; do
-  python -c "import json;s=json.load(open('$OUT/$d/summary.json'));a=s['alignment_on_failures'];c=s['control_alignment_on_failures'];print('$d', '失敗 rho_G', round(a['rho_G'],3), '對照 rho_G', round(c['rho_G'],3), 'A>0 比例', round(s['frac_failures_with_A_positive'],3))"
+  python -c "import json;s=json.load(open('$OUT/$d/summary.json'));a=s['alignment_on_failures'];c=s['control_alignment_on_failures'];print('$d'.replace('base_last', 'base_last_psi8_rotation') if '$d' == 'base_last' else '$d', '失敗 rho_G', round(a['rho_G'],3), '對照 rho_G', round(c['rho_G'],3), 'A>0 比例', round(s['frac_failures_with_A_positive'],3))"
 done

@@ -12,6 +12,8 @@ baseline 的訓練集預測算出 Ψ，取 Ψ 最明顯的影像 loss × 3（÷ 
 3. 但 Ψ 加權沒有提升整體：三個專家相對對照組 −0.003 到 −0.005（Ψ8 p = 0.047，方向是下降）。
 4. Ψ8 專家在低分 12 張上 +0.058（8 張升、1 張降，p = 0.012），但被誤挑的 40 張正常影像略降，整體抵銷。
 5. H-SAM 的 12 張低分影像中有 11 張也是 U-KAN 的低分影像；`benign (247)`、`benign (116)` 在所有模型都是 0。困難的是影像本身，不是特定模型。
+6. **8 個模型（U-KAN 3 個、H-SAM 5 個）全部 Dice < 0.1 的有 3 張：`benign (247)`、`benign (116)`、`malignant (106)`**（`malignant (105)` 8 個中 7 個 < 0.1）。全部 < 0.5 的有 10 張（第 6 節）。
+7. 教授的 failure_diagnostics.py：H-SAM baseline 的 12 張失敗 = 6 張 delineation + 6 張 missed，沒有 wrong-choice；梯度對齊與 U-KAN **相反**：Ψ8 加權清單與失敗影像同方向（rho_G +0.41，隨機對照 −0.24，12 張中 11 張 A > 0），與 Ψ8 專家在低分影像上 +0.058 一致（第 7 節）。
 
 ## 模型與公平性
 
@@ -135,14 +137,78 @@ H-SAM 的 12 張低分與 U-KAN 的 15 張低分，每個模型的 Dice（[low_d
 - U-KAN 低分但 H-SAM 正常的 4 張：`benign (353)` 0.90、`benign (367)` 0.79、`benign (315)` 0.68、`benign (236)` 0.54。
 - `benign (247)`、`benign (116)` 在 U-KAN 與 5 個 H-SAM 模型都是 0；那 9 張 H-SAM 平均 0.26，比 U-KAN（0.02）好，但仍遠低於其他影像。
 
+## 6. 疊合圖：哪些影像真的太難 — [hard_cases_BUSI.csv](results/analysis/hard_cases_BUSI.csv)
+
+上面 16 張低分影像（H-SAM 或 U-KAN 低分），U-KAN 3 個模型（seed2981 best、base2、shift）與 H-SAM 5 個模型的預測。
+全部縮到 256×256 計算 Dice（H-SAM 的數字因此與第 5 節略有差異）。程式：[overlay_hsam_ukan.py](hsam_extension/overlay_hsam_ukan.py)。
+
+![低分影像一覽](results/examples/low_dice_overview.jpg)
+
+一覽圖每列一張影像：原圖、U-KAN seed2981、U-KAN shift、H-SAM base、H-SAM psi8w3n（綠 = 標註、紅 = 預測、黃字 = Dice）。
+每張影像 8 個模型的完整圖在 [results/examples/low_dice/](results/examples/low_dice/)（上列：原圖、標註、U-KAN 三個；下列：H-SAM 五個）。
+
+| 組別 | 影像 | 8 個模型的 Dice | 圖上看到的 |
+|---|---|---|---|
+| **全部 < 0.1（真的太難）** | `benign (247)`、`benign (116)`、`malignant (106)`、`malignant (105)`（7 / 8） | 0.00–0.20 | 腫瘤很小或貼在影像邊緣（116、105），或旁邊有更明顯的暗區（106、247）；兩種架構都沒找到，各自圈了別的地方 |
+| **全部 < 0.5，錯法一樣** | `benign (299)`、`malignant (116)`、`benign (131)`、`benign (408)` | 0.06–0.48 | 所有模型的輪廓幾乎相同：圈到相鄰的暗區或聲影（299、116、408），或只圈上半部（131）。可能是標註對範圍的認定，需要醫師確認 |
+| **全部 < 0.5，錯法不同** | `malignant (198)`、`benign (223)` | 0.00–0.36 | U-KAN 圈到大片暗區，H-SAM 只圈到一部分 |
+| **H-SAM 較好** | `benign (367)`、`benign (236)`、`benign (257)` | U-KAN 0.00–0.32；H-SAM 最高 0.63–0.79 | U-KAN 圈到旁邊的暗區或沒有預測；H-SAM 找到腫瘤，但不同 H-SAM 模型之間差很多（例：367 為 0.00–0.79） |
+| **只有 U-KAN seed2981 低分** | `benign (353)`、`benign (315)` | 其他 7 個模型 0.58–0.93 | 偶發：seed2981 多圈了旁邊的區塊 |
+| **U-KAN 做得到，H-SAM 做不到** | `malignant (60)` | U-KAN 0.75–0.85；H-SAM 0.08–0.50 | H-SAM 沿著上方邊緣多圈了一長條 |
+
+## 7. 教授的失敗診斷 — [results/diagnostics/](results/diagnostics/)
+
+教授的 [failure_diagnostics.py](https://github.com/OwenWu930302/psi-discussion/blob/main/busi/code/failure_diagnostics.py)（未修改，自我測試 10 項 PASS：[selftest.txt](results/diagnostics/selftest.txt)），作法同 [psi-discussion 第 8 節](https://github.com/OwenWu930302/psi-discussion/tree/main/busi)。
+輸入由 [diag_npz_hsam.py](hsam_extension/diag_npz_hsam.py) 產生：測試集 130 張的機率圖（H-SAM 推論，縮到 256×256）、Ψ1 / Ψ6 / Ψ8（baseline 的預測）、梯度；執行：[run_diag_hsam.sh](hsam_extension/run_diag_hsam.sh)。
+Ψ 門檻 = 加權清單的最小值（程式用「>」，所以減 1e-7）；Ψ6 為 > 0。
+
+**7.1 候選區域與失敗類型**（機率 > 0.2 的區塊依最高機率排名，蓋到 ≥ 30% 標註才算命中）
+
+| 模型 | 失敗（Dice < 0.5） | delineation | wrong-choice | missed | recall@1 | recall@5 |
+|---|---|---|---|---|---|---|
+| base | 12 / 130 | 6 | 0 | 6 | 0.50 | 0.50 |
+| ctrl | 14 / 130 | 9 | 1 | 4 | 0.64 | 0.71 |
+| psi1w3n | 13 / 130 | 7 | 1 | 5 | 0.54 | 0.62 |
+| psi6w3n | 14 / 130 | 7 | 2 | 5 | 0.50 | 0.64 |
+| psi8w3n | 13 / 130 | 7 | 2 | 4 | 0.54 | 0.69 |
+
+- baseline 與 U-KAN 一樣沒有 wrong-choice；missed 6 張（U-KAN seed2981 為 9 張）。逐張加權後的模型出現 1–2 張 wrong-choice，看前幾名候選可多救回這幾張。
+- baseline 的 6 張 missed：`benign (247)`、`benign (116)`、`malignant (105)`、`malignant (106)`、`malignant (198)`、`benign (408)`，其中前 3 張標註內的最高機率 < 0.06（完全沒當成腫瘤）。
+
+**7.2 Ψ 偵測失敗的能力**（baseline）
+
+| Ψ | AUROC（95% CI） | 抓到的失敗 | 誤報率 | precision | 標記張數 |
+|---|---|---|---|---|---|
+| Ψ1 凸包比 | —（`benign (116)` 沒有任何預測，Ψ1 無法計算） | 0.75 | 0.27 | 0.22 | 41 |
+| Ψ6 連通元件 | 0.71（0.52–0.89） | 0.58 | 0.14 | 0.29 | 24 |
+| Ψ8 旋轉一致性 | **0.92（0.84–0.97）** | **1.00** | 0.34 | 0.23 | 52 |
+
+形狀特徵（Ψ1、Ψ6）合起來抓到 83% 的失敗；兩者都沒標到的 85 張中只剩 2 張失敗，在這群裡 Ψ8 的 AUROC 是 0.98。
+
+**7.3 梯度對齊**（baseline；參數 = 兩個 decoder 中產生遮罩的 hypernetwork MLP 最後一層，24,672 維；loss = 最後一個 epoch 的官方 loss）
+
+| 測試影像 | 訓練影像 | rho_G | A > 0 |
+|---|---|---|---|
+| 12 張失敗 | Ψ8 加權清單 155 張（× 3） | **+0.41** | 11 / 12 |
+| 　其中 6 張 missed | 同上 | +0.54 | 6 / 6 |
+| 　其中 6 張 delineation | 同上 | +0.29 | 5 / 6 |
+| 12 張失敗 | 隨機 155 張（對照） | −0.24 | |
+| 118 張非失敗 | Ψ8 加權清單 | +0.10 | 77 / 118 |
+
+- **與 U-KAN 相反**（U-KAN：失敗 −0.40、對照 −0.18）：在 H-SAM 上，Ψ8 清單的梯度與失敗影像同方向，而且明顯高於隨機對照，代表 Ψ8 挑到的訓練影像與測試失敗「相關」。這和 Ψ8 專家在低分 12 張上 +0.058（第 4 節）一致。
+- 但同方向只是一階近似：`benign (247)`、`benign (116)`、`malignant (105)` 在 Ψ8 專家仍是 0；加權的改善也被 40 張誤挑的正常影像抵銷。
+- 參數與 loss 都和 U-KAN 不同，兩個模型只比較正負，不比較大小。
+
 ## 資料夾
 
 | 路徑 | 內容 |
 |---|---|
-| [hsam_extension/](hsam_extension/) | 資料轉換、兩個 patch、預測與 Ψ、篩選、記憶體測試、訓練腳本、整理（collect_hsam.py）、分析（analyze_hsam.py） |
+| [hsam_extension/](hsam_extension/) | 資料轉換、兩個 patch、預測與 Ψ、篩選、記憶體測試、訓練腳本、整理（collect_hsam.py）、分析（analyze_hsam.py）、失敗診斷（diag_npz_hsam.py、run_diag_hsam.sh）、疊合圖（overlay_hsam_ukan.py） |
 | [results/percase/](results/percase/) | 每個模型逐張結果（訓練集 + 測試集）：`dice`（原始解析度）、`dice256`、Ψ1–Ψ10（base 才有 Ψ） |
 | [results/training_logs/](results/training_logs/) | 官方 trainer 的逐迭代紀錄（`_log.txt`）與設定（`_config.txt`） |
-| [results/analysis/](results/analysis/) | 上面各節的表格與圖；檔名、欄位與 psi-weighted-ukan 的 `results/analysis/` 相同（`checkpoint` 皆為 last） |
+| [results/analysis/](results/analysis/) | 上面各節的表格與圖；檔名、欄位與 psi-weighted-ukan 的 `results/analysis/` 相同（`checkpoint` 皆為 last）；`hard_cases_BUSI.csv` 為第 6 節 |
+| [results/examples/](results/examples/) | 第 6 節的疊合圖：`low_dice_overview.jpg`（一覽）、`low_dice/`（每張影像 8 個模型） |
+| [results/diagnostics/](results/diagnostics/) | 第 7 節：每個模型的 `per_case.csv`、`summary.json`（教授程式的輸出），`selftest.txt` |
 | [weight_lists/](weight_lists/) | Ψ 篩選結果（`proxy_selection_busi.csv`）與三份加權清單 |
 
 ## 重現
@@ -155,6 +221,7 @@ python prep_busi_hsam.py <U-KAN inputs/busi> ../data/busi
 nohup bash run_hsam_busi.sh > run_hsam_busi.log 2>&1 &          # 5 個模型，RTX 4080 約 15 小時
 python collect_hsam.py --base .. --repo <本倉庫> --masks <inputs/busi/masks/0>
 python hsam_extension/analyze_hsam.py --ukan_repo ../psi-weighted-ukan   # 在本倉庫根目錄
+bash run_diag_hsam.sh > run_diag_hsam.log 2>&1   # H-SAM 資料夾：失敗診斷 + 疊合圖（需 psi-discussion 的 failure_diagnostics.py、name_cases.py）
 ```
 
 環境：Python 3.10、torch 2.2.0 + cu118、官方 requirements（不含 mmcv 等未使用的套件）。

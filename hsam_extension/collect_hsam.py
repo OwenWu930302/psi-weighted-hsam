@@ -1,5 +1,5 @@
 """
-把 H-SAM 的 BUSI 結果整理進 GitHub 倉庫（psi-weighted-hsam），格式同 psi-weighted-ukan（原 psi-weighted-busi）
+把 H-SAM 的 BUSI 結果整理進 GitHub 倉庫（psi-weighted-hsam），格式同 psi-weighted-ukan
   results/percase/busi_HSAM_<模型>_last.csv     每張影像的 Dice（原始解析度，官方評估）＋ dice256（縮到 256×256，與 U-KAN 相同，只用來和 U-KAN 比較）
   results/training_logs/busi_HSAM_<模型>_log.txt、_config.txt    官方 trainer 的逐迭代紀錄與設定
   weight_lists/    Ψ 篩選結果與加權清單（由 baseline 的訓練集預測產生）

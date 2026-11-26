@@ -1,7 +1,7 @@
 """
 把 U-KAN 用的 BUSI（inputs/busi）轉成 H-SAM 的資料格式，切分與 U-KAN 完全相同
-  來源：<busi>/images/<名稱>.png、<busi>/masks/0/<名稱>_mask.png（psi-weighted-busi 的 prep_busi.py 產生，647 張）
-  切分：影像名稱排序 → train_test_split(test_size=0.2, random_state=2981)，訓練 517 / 測試 130（同 U-KAN、psi-weighted-busi）
+  來源：<busi>/images/<名稱>.png、<busi>/masks/0/<名稱>_mask.png（psi-weighted-ukan 的 prep_busi.py 產生，647 張）
+  切分：影像名稱排序 → train_test_split(test_size=0.2, random_state=2981)，訓練 517 / 測試 130（同 U-KAN、psi-weighted-ukan）
   影像：灰階、原始解析度、/255 → float32 [0, 1]（H-SAM 的 Synapse 資料同為 [0, 1]，訓練時由 RandomGenerator 縮放到 img_size）
   標註：> 127 → 1，其餘 0（uint8）
 輸出（H-SAM 的 Synapse 格式）：

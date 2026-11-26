@@ -1,5 +1,5 @@
 """
-用訓練好的 H-SAM 預測 BUSI，存下每張影像的預測遮罩與逐張 Dice，並可計算 Ψ（同 psi-weighted-busi 的 predict_busi.py）
+用訓練好的 H-SAM 預測 BUSI，存下每張影像的預測遮罩與逐張 Dice，並可計算 Ψ（同 psi-weighted-ukan 的 predict_busi.py）
   推論：與官方 utils.test_single_volume 相同（縮放 order 3 → stage 3 = 兩個 decoder 的輸出平均 → argmax → 縮回原尺寸 order 0）
         input_size = img_size = 512（官方 test.py 的 input_size 預設 224 是給 Synapse 的；BUSI 訓練時直接從原圖縮到 512，所以測試也一樣）
         不給任何 prompt（H-SAM 原本就不用 prompt）
@@ -7,7 +7,7 @@
   Ψ（--psi）：沿用 psi-weighted-nnunet/psi/run_all_psi.py 的函式，只用預測遮罩，不用標註
     Ψ1 凸包比、Ψ6 連通元件、Ψ7 拓撲環：由預測遮罩計算
     Ψ8 旋轉一致性：影像旋轉 15°（邊緣補影像最小值）→ 同一模型預測 → 轉回（最近鄰）→ 1 − Dice(原預測, 轉回的預測)
-    Ψ2/3/4/5/9/10：BUSI 無定義，標為 NaN（同 psi-weighted-busi）
+    Ψ2/3/4/5/9/10：BUSI 無定義，標為 NaN（同 psi-weighted-ukan）
 輸出：<out>/percase_last.csv（case, split, dice, iou, pred_pixels, gt_pixels[, psi…]）、<out>/pred_last/<split>/<影像>.png
 用法（在 H-SAM 資料夾）：
   python predict_hsam.py --lora_ckpt outputs/busi_HSAM_base/.../epoch_249.pth --data <資料> --out outputs/busi_HSAM_base --psi

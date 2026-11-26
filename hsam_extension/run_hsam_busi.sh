@@ -1,5 +1,5 @@
 #!/bin/bash
-# H-SAM（CVPR 2024）在 BUSI 上的 Ψ 加權實驗，流程同 psi-weighted-busi / psi-weighted-nnunet
+# H-SAM（CVPR 2024）在 BUSI 上的 Ψ 加權實驗，流程同 psi-weighted-ukan / psi-weighted-nnunet
 #   1. baseline（官方 loss）→ 預測訓練集 + 測試集，計算 Ψ
 #   2. 用 baseline 的訓練集預測篩選 Ψ，產生 Ψ1、Ψ6、Ψ8 的加權清單（前 30%；整數值 > 0）
 #   3. 對照組 ctrl（逐張 loss、權重全為 1）

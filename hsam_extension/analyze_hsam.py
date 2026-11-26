@@ -1,5 +1,5 @@
 """
-BUSI（H-SAM）：對照組（逐張 loss、權重 1）→ 專家（Ψ ×3），作法同 psi-weighted-busi 的 analyze_busi.py
+BUSI（H-SAM）：對照組（逐張 loss、權重 1）→ 專家（Ψ ×3），作法同 psi-weighted-ukan 的 analyze_busi.py
   --psi_from：計算 Ψ、產生加權清單、定義低分組的 baseline（busi_HSAM_base，官方 loss）
   --control ：對照組（busi_HSAM_ctrl）；與 --psi_from 是不同模型，避免「用對照組自己的低分挑影像，重訓後自然回升」
   全部用最後一個 epoch（last）
@@ -34,7 +34,7 @@ import matplotlib.pyplot as plt
 
 ap = argparse.ArgumentParser()
 ap.add_argument('--repo', default='.')
-ap.add_argument('--ukan_repo', default='../psi-weighted-ukan', help='psi-weighted-ukan（原 psi-weighted-busi）')
+ap.add_argument('--ukan_repo', default='../psi-weighted-ukan', help='psi-weighted-ukan')
 ap.add_argument('--psi_from', default='busi_HSAM_base')
 ap.add_argument('--control', default='busi_HSAM_ctrl')
 ap.add_argument('--low_t', default=0.5, type=float)

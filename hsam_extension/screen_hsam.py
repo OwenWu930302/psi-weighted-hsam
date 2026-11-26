@@ -1,6 +1,6 @@
 """
 BUSI（H-SAM）：用 baseline 的訓練集預測篩選 Ψ，並產生加權清單
-  與 psi-weighted-busi 的 screen_busi.py 相同（規則同 nnU-Net 專案 docs/METHODS.md 5.4），只多第三個參數：
+  與 psi-weighted-ukan 的 screen_busi.py 相同（規則同 nnU-Net 專案 docs/METHODS.md 5.4），只多第三個參數：
   指定的 Ψ 不論是否顯著都寫出清單（教授指定的三個特徵；是否顯著記在 proxy_selection_busi.csv 的 status），
   不顯著時一律取「值越大越可能出錯」的方向（前 30%，或整數值 > 0）
   低分組 = 訓練集逐張 Dice 最低 30%（含並列）

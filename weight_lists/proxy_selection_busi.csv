@@ -1,0 +1,11 @@
+﻿proxy,n,low_n,dice_threshold,auc,p,direction,low_mean,rest_mean,status,rule,list_threshold,list_n,list_file
+psi1_convex,517,155,0.9067395147782733,0.7923933846098292,9.254641586571158e-26,high = hard,1.094146546435777,1.043597527547657,significant,top30,>= 1.06001,155.0,/home/tkyin/桌面/HSAM/psi_lists/wcases_busi_psi1_convex.csv
+psi2_shadow,517,155,,,,,,,undefined,,,,
+psi3_inclusion,517,155,,,,,,,single structure,,,,
+psi4_adjacency,517,155,,,,,,,single structure,,,,
+psi5_exclusion,517,155,,,,,,,single structure,,,,
+psi6_cc,517,155,0.9067395147782733,0.5608447692033506,0.00015321513225793995,high = hard,0.4258064516129032,0.1132596685082873,significant,gt0,> 0,64.0,/home/tkyin/桌面/HSAM/psi_lists/wcases_busi_psi6_cc.csv
+psi7_genus,517,155,0.9067395147782733,0.4871537933773878,0.38153546657662407,low = hard,0.9477124183006536,0.919889502762431,not significant,bottom30,<= 1,511.0,
+psi8_rotation,517,155,0.9067395147782733,0.838451256460524,3.0331789670393543e-34,high = hard,0.12890225772802907,0.04120913644996761,significant,top30,>= 0.0594595,155.0,/home/tkyin/桌面/HSAM/psi_lists/wcases_busi_psi8_rotation.csv
+psi9_nesting,517,155,,,,,,,single structure,,,,
+psi10_centroid,517,155,,,,,,,single structure,,,,

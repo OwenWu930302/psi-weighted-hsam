@@ -62,6 +62,20 @@ SAMUS / AutoSAMUS（MICCAI 2024）雖有 BUSI 設定，但 AutoSAMUS 要先載�
 - U-KAN 低分 15、那 9 張：psi-weighted-ukan 的定義（U-KAN `seed2981` Dice < 0.5；`moved_busi_dice02.csv`）。差距 = 訓練集 − 測試集。
 - 對照 U-KAN（256×256）：base2 0.782、加平移增強 0.818（[psi-discussion](https://github.com/OwenWu930302/psi-discussion/tree/main/busi)）。
 
+**U-KAN 與 H-SAM 對照**（測試集 130 張，都在 256×256 計算）— [compare_UKAN_HSAM_BUSI.csv](results/analysis/compare_UKAN_HSAM_BUSI.csv)
+
+![U-KAN vs H-SAM](results/analysis/compare_UKAN_HSAM_BUSI.png)
+
+| 模型 | 平均 Dice | 中位數 | Dice < 0.5 | 與 H-SAM base 比較 |
+|---|---|---|---|---|
+| U-KAN base2（官方設定） | 0.782 | 0.912 | 19 | H-SAM +0.047，81 張較好 / 46 張較差，p = 0.0018 |
+| U-KAN shift（+ 平移增強） | 0.818 | 0.924 | 14 | H-SAM +0.011，p = 0.52 |
+| H-SAM base（官方設定） | **0.829** | 0.920 | 12 | — |
+
+- 差距主要在低分端：Dice ≥ 0.9 兩者相近（70 / 77 張），H-SAM 的 < 0.1 從 9 張降為 5 張。
+- U-KAN 加了平移增強後與 H-SAM 無顯著差異；兩者在預訓練、解析度（256 / 512）、資料增強上同時不同，無法歸因於單一因素。
+- 右圖 × = 8 個模型都 < 0.1 的 4 張（第 6 節），兩個架構都在原點。程式：[compare_ukan_hsam.py](hsam_extension/compare_ukan_hsam.py)。
+
 **成對比較（逐張 Wilcoxon）** — [models_BUSI_compare.csv](results/analysis/models_BUSI_compare.csv)
 
 | 比較 | 測試集 130 | p | 低分 12 | p |
@@ -203,10 +217,10 @@ H-SAM 的 12 張低分與 U-KAN 的 15 張低分，每個模型的 Dice（[low_d
 
 | 路徑 | 內容 |
 |---|---|
-| [hsam_extension/](hsam_extension/) | 資料轉換、兩個 patch、預測與 Ψ、篩選、記憶體測試、訓練腳本、整理（collect_hsam.py）、分析（analyze_hsam.py）、失敗診斷（diag_npz_hsam.py、run_diag_hsam.sh）、疊合圖（overlay_hsam_ukan.py） |
+| [hsam_extension/](hsam_extension/) | 資料轉換、兩個 patch、預測與 Ψ、篩選、記憶體測試、訓練腳本、整理（collect_hsam.py）、分析（analyze_hsam.py）、失敗診斷（diag_npz_hsam.py、run_diag_hsam.sh）、疊合圖（overlay_hsam_ukan.py）、U-KAN 對照（compare_ukan_hsam.py） |
 | [results/percase/](results/percase/) | 每個模型逐張結果（訓練集 + 測試集）：`dice`（原始解析度）、`dice256`、Ψ1–Ψ10（base 才有 Ψ） |
 | [results/training_logs/](results/training_logs/) | 官方 trainer 的逐迭代紀錄（`_log.txt`）與設定（`_config.txt`） |
-| [results/analysis/](results/analysis/) | 上面各節的表格與圖；檔名、欄位與 psi-weighted-ukan 的 `results/analysis/` 相同（`checkpoint` 皆為 last）；`hard_cases_BUSI.csv` 為第 6 節 |
+| [results/analysis/](results/analysis/) | 上面各節的表格與圖；檔名、欄位與 psi-weighted-ukan 的 `results/analysis/` 相同（`checkpoint` 皆為 last）；`hard_cases_BUSI.csv` 為第 6 節；`compare_UKAN_HSAM_BUSI.*` 為第 1 節的 U-KAN 對照 |
 | [results/examples/](results/examples/) | 第 6 節的疊合圖：`low_dice_overview.jpg`（一覽）、`low_dice/`（每張影像 8 個模型） |
 | [results/diagnostics/](results/diagnostics/) | 第 7 節：每個模型的 `per_case.csv`、`summary.json`（教授程式的輸出），`selftest.txt` |
 | [weight_lists/](weight_lists/) | Ψ 篩選結果（`proxy_selection_busi.csv`）與三份加權清單 |

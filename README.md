@@ -62,19 +62,20 @@ SAMUS / AutoSAMUS（MICCAI 2024）雖有 BUSI 設定，但 AutoSAMUS 要先載�
 - U-KAN 低分 15、那 9 張：psi-weighted-ukan 的定義（U-KAN `seed2981` Dice < 0.5；`moved_busi_dice02.csv`）。差距 = 訓練集 − 測試集。
 - 對照 U-KAN（256×256）：base2 0.782、加平移增強 0.818（[psi-discussion](https://github.com/OwenWu930302/psi-discussion/tree/main/busi)）。
 
-**U-KAN 與 H-SAM 對照**（測試集 130 張，都在 256×256 計算）— [compare_UKAN_HSAM_BUSI.csv](results/analysis/compare_UKAN_HSAM_BUSI.csv)
+**U-KAN 與 H-SAM 的對照組比較**（測試集 130 張，都在 256×256 計算）— [compare_UKAN_HSAM_BUSI.csv](results/analysis/compare_UKAN_HSAM_BUSI.csv)
 
-![U-KAN vs H-SAM](results/analysis/compare_UKAN_HSAM_BUSI.png)
+Ψ 實驗比較的是「對照組 → 專家」，所以這裡比兩邊的對照組：U-KAN 的對照組是 `base2`（官方設定），H-SAM 的對照組是 `ctrl`（逐張 loss、權重 1）。
 
-| 模型 | 平均 Dice | 中位數 | Dice < 0.5 | 與 H-SAM base 比較 |
-|---|---|---|---|---|
-| U-KAN base2（官方設定） | 0.782 | 0.912 | 19 | H-SAM +0.047，81 張較好 / 46 張較差，p = 0.0018 |
-| U-KAN shift（+ 平移增強） | 0.818 | 0.924 | 14 | H-SAM +0.011，p = 0.52 |
-| H-SAM base（官方設定） | **0.829** | 0.920 | 12 | — |
+![U-KAN vs H-SAM control](results/analysis/compare_UKAN_HSAM_BUSI.png)
 
-- 差距主要在低分端：Dice ≥ 0.9 兩者相近（70 / 77 張），H-SAM 的 < 0.1 從 9 張降為 5 張。
-- U-KAN 加了平移增強後與 H-SAM 無顯著差異；兩者在預訓練、解析度（256 / 512）、資料增強上同時不同，無法歸因於單一因素。
-- 右圖 × = 8 個模型都 < 0.1 的 4 張（第 6 節），兩個架構都在原點。程式：[compare_ukan_hsam.py](hsam_extension/compare_ukan_hsam.py)。
+| 對照組 | 平均 Dice | 中位數 | Dice < 0.5 | Dice < 0.1 | Dice ≥ 0.9 |
+|---|---|---|---|---|---|
+| U-KAN `base2` | 0.782 | 0.912 | 19 | 9 | 70 |
+| H-SAM `ctrl` | **0.828** | 0.926 | **14** | 5 | **82** |
+
+- H-SAM 對照組高 0.046：82 張較好、45 張較差、3 張相同（逐張 Wilcoxon p = 4.1e-5）。
+- 右圖每個點 = 一張測試影像，橫軸 U-KAN、縱軸 H-SAM；點在虛線上方 = H-SAM 較好。左上 = 只有 H-SAM 做得到（6 張），右下 = 只有 U-KAN 做得到（`malignant (60)`），× = 8 個模型都 < 0.1 的 4 張（第 6 節）。
+- 兩者在預訓練、解析度（256 / 512）、資料增強上同時不同，無法歸因於單一因素；U-KAN 加平移增強後為 0.818（[psi-discussion](https://github.com/OwenWu930302/psi-discussion/tree/main/busi)）。CSV 另附 U-KAN shift 與 H-SAM base。程式：[compare_ukan_hsam.py](hsam_extension/compare_ukan_hsam.py)。
 
 **成對比較（逐張 Wilcoxon）** — [models_BUSI_compare.csv](results/analysis/models_BUSI_compare.csv)
 

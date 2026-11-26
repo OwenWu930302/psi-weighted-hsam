@@ -1,0 +1,4 @@
+﻿expert,psi,threshold,n_test,n_prominent,n_low_dice,n_hit,n_false_pick,n_missed,coverage,precision
+busi_HSAM_psi1w3n,psi1_convex,>= 1.06001,130,41,12,9,32,3,0.7500,0.2195
+busi_HSAM_psi6w3n,psi6_cc,> 0,130,24,12,7,17,5,0.5833,0.2917
+busi_HSAM_psi8w3n,psi8_rotation,>= 0.0594595,130,52,12,12,40,0,1.0000,0.2308

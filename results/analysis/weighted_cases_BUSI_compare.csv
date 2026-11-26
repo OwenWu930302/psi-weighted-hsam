@@ -1,0 +1,4 @@
+﻿checkpoint,expert,n_weighted,delta_weighted,n_unweighted,delta_unweighted,weighted_minus_unweighted,mannwhitney_p
+last,busi_HSAM_psi1w3n,155,0.0096,362,-0.0106,0.0202,0.0000
+last,busi_HSAM_psi6w3n,64,0.0297,453,-0.0133,0.0430,0.0000
+last,busi_HSAM_psi8w3n,155,0.0109,362,-0.0110,0.0219,0.0000

@@ -1,6 +1,0 @@
-model,loss,psi_weight,n_weighted,n_test,test_all,test_other,test_low_dice,nine,train_all,gap,test_all_dice256
-busi_HSAM_base,official (batch Dice),none,0,130,0.8295,0.8956,0.3221,0.2554,0.9042,0.0747,0.8292
-busi_HSAM_ctrl,"per-case, w = 1",none,0,130,0.828,0.9012,0.2671,0.1585,0.9267,0.0987,0.8281
-busi_HSAM_psi1w3n,"per-case, x3 / n",psi1_convex,155,130,0.8246,0.8889,0.3316,0.2591,0.9222,0.0975,0.8244
-busi_HSAM_psi6w3n,"per-case, x3 / n",psi6_cc,64,130,0.8231,0.8975,0.2522,0.1236,0.9188,0.0957,0.8228
-busi_HSAM_psi8w3n,"per-case, x3 / n",psi8_rotation,155,130,0.823,0.8908,0.3027,0.2036,0.9223,0.0993,0.8233

@@ -1,0 +1,13 @@
+﻿checkpoint,expert,group,n,before_control,after_expert,delta,n_up,n_down,wilcoxon_p
+last,busi_HSAM_psi1w3n,all,130,0.8280,0.8246,-0.0034,60,67,0.2919
+last,busi_HSAM_psi1w3n,prominent,41,0.6660,0.6748,0.0088,18,22,0.9464
+last,busi_HSAM_psi1w3n,low_dice,12,0.1698,0.1897,0.0200,6,3,0.4258
+last,busi_HSAM_psi1w3n,false_pick,32,0.7972,0.8025,0.0052,13,19,0.8034
+last,busi_HSAM_psi6w3n,all,130,0.8280,0.8231,-0.0050,61,67,0.5239
+last,busi_HSAM_psi6w3n,prominent,24,0.5859,0.5594,-0.0265,11,12,0.8791
+last,busi_HSAM_psi6w3n,low_dice,12,0.1698,0.1751,0.0053,6,4,0.9219
+last,busi_HSAM_psi6w3n,false_pick,17,0.7468,0.7207,-0.0261,8,9,0.8536
+last,busi_HSAM_psi8w3n,all,130,0.8280,0.8230,-0.0051,55,72,0.0471
+last,busi_HSAM_psi8w3n,prominent,52,0.6681,0.6760,0.0079,26,23,0.6580
+last,busi_HSAM_psi8w3n,low_dice,12,0.1698,0.2282,0.0584,8,1,0.0117
+last,busi_HSAM_psi8w3n,false_pick,40,0.8177,0.8104,-0.0073,18,22,0.4517
